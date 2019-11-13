@@ -20,13 +20,37 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   IN THE SOFTWARE.
 }
-program tester;
+unit wakaru.utils;
+
+{$mode delphi}
+
+interface
 
 uses
-  wakaru.consts,
-  wakaru.types,
-  wakaru.utils;
+  Classes,
+  SysUtils,
+  wakaru.consts;
 
+  (*
+    provided a range, this method will return the appropriate signal
+    enumeration it belongs to
+  *)
+  function RangeToSignal(Const ARange : TSignalRange) : TSignal;
+
+implementation
+
+function RangeToSignal(const ARange: TSignalRange): TSignal;
 begin
+  //map the input range to the corresponding signal enum
+  if (ARange >= Low(TAlphaRange)) and (ARange <= High(TAlphaRange)) then
+    Exit(sgAlpha)
+  else if (ARange >= Low(TBetaRange)) and (ARange <= High(TBetaRange)) then
+    Exit(sgBeta)
+  else if (ARange >= Low(TGammaRange)) and (ARange <= High(TGammaRange)) then
+    Exit(sgGamma)
+  else
+    Exit(sgDelta);
+end;
+
 end.
 

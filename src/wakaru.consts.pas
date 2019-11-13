@@ -20,13 +20,44 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
   IN THE SOFTWARE.
 }
-program tester;
+unit wakaru.consts;
 
-uses
-  wakaru.consts,
-  wakaru.types,
-  wakaru.utils;
+{$mode delphi}
 
-begin
+interface
+
+const
+  (*
+    define ranges according to the max int size. this may change in the
+    future
+  *)
+  SIGNAL_RANGE_STEP = MaxInt div 4;
+  SIGNAL_RANGE_MAX = MaxInt;
+
+type
+
+  (*
+    signals are produced by node clusters when a measurement is taken
+  *)
+  TSignal = (
+    sgAlpha,
+    sgBeta,
+    sgGamma,
+    sgDelta
+  );
+
+  TSignals = set of TSignal;
+
+  (*
+    define the ranges for each signal
+  *)
+  TSignalRange = Integer;
+  TAlphaRange = 0 .. SIGNAL_RANGE_STEP;
+  TBetaRange = Succ(High(TAlphaRange)) .. High(TAlphaRange) + SIGNAL_RANGE_STEP;
+  TGammaRange = Succ(High(TBetaRange)) .. High(TBetaRange) + SIGNAL_RANGE_STEP;
+  TDeltaRange = Succ(High(TGammaRange)) .. SIGNAL_RANGE_MAX;
+
+implementation
+
 end.
 
