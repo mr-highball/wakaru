@@ -33,12 +33,27 @@ uses
 
 type
 
+  //forward
+  INode = interface;
+
+
+  { INodeConnection }
   (*
     a node connection binds node(s) together but always has only
     one source node
   *)
   INodeConnection = interface
     ['{1187154A-EF72-4BF5-A975-D28FA418726D}']
+
+    //property methods
+    function GetSource: INode;
+    procedure SetSource(AValue: INode);
+
+    //properties
+    property Source : INode read GetSource write SetSource;
+    //Connected : INodes (collection)
+
+    //methods
   end;
 
   (*
@@ -48,6 +63,11 @@ type
   *)
   INode = interface
     ['{0B7F6660-5A94-4F70-8434-E9865A2C7004}']
+
+    //Connections : INodeConnections (collection)
+
+    //Reset()
+    //Value() : TSignal
   end;
 
   (*
@@ -57,6 +77,8 @@ type
   *)
   INodeCluster = interface
     ['{53CF34C9-D26E-475A-B412-34239499824F}']
+
+    //Value() : TSignal
   end;
 
   (*
@@ -68,6 +90,10 @@ type
   *)
   INodeNetwork = interface
     ['{821D75CF-455A-434B-9406-29B3CA0CA224}']
+
+    //Pulse()
+    //Commit()
+    //Clear()
   end;
 
 implementation

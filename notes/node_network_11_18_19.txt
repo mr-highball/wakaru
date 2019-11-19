@@ -1,0 +1,52 @@
+--------------------------------------------------------------------------------------------
+NODE NETWORK
+--------------------------------------------------------------------------------------------
+
+
+pulse tree, used to store all signal readings at a given pulse
+ex:
+-----------------------
+- pulse_1
+  - cluster_1, A
+  - cluster_2, B
+- pulse_2
+ - cluster_1, G
+ - cluster_2, B
+- pulse_3
+ - cluster_1, D
+ - cluster_2, D
+ -----------------------
+
+
+
+when read first to last:
+-----------------------
+           1    2    3
+cluster_1: A -> G -> D
+cluster_2: B -> B -> D
+-----------------------
+
+
+assuming that the above sequence has been committed to "memory",
+then provided the below secondary set of readings, we should be able 
+to compare the similarity
+(we also assume that each signal must be an exact match for 
+similarity, but a distance measurement could be made):
+-----------------------
+           1    2    3
+cluster_1: G -> B -> D
+cluster_2: B -> G -> D
+           .5   0    1 = 50% match
+-----------------------
+
+
+depending on the level of confidence required, this percentage could
+probably be used to make classification decisions using a fairly
+simple mechanism.
+
+given above, a node network should have the following methods available:
+-----------------------
+- Pulse(): stores current signals to "working" pulse tree for all clusters
+- Commit(): stores entire tree to "memory" with an optional session identifier
+- Clear(): clears the "working tree" and resets all nodes inside of all clusters to default state
+-----------------------
