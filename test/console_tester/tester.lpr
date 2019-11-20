@@ -25,7 +25,8 @@ program tester;
 uses
   wakaru.consts,
   wakaru.types,
-  wakaru.utils;
+  wakaru.utils,
+  wakaru.collection;
 
 begin
 end.

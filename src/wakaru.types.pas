@@ -29,13 +29,44 @@ interface
 uses
   Classes,
   SysUtils,
-  wakaru.consts;
+  wakaru.consts,
+  wakaru.collection;
 
 type
+
+  { IIdentifiable }
+  (*
+    a means of identifying uniquely, and optionally with a user defined tag
+  *)
+  IIdentifiable = interface
+    ['{22B4C03D-52C8-4578-AD9C-D2A9A054F70C}']
+
+    //property methods
+    function GetID: String;
+    function GetTag: String;
+    procedure SetTag(AValue: String);
+
+    //properties
+
+    (*
+      unique generated identifier
+    *)
+    property ID : String read GetID;
+
+    (*
+      "friendly" identifier that can be modified by caller
+    *)
+    property Tag : String read GetTag write SetTag;
+  end;
 
   //forward
   INode = interface;
 
+  { INodes }
+  (*
+    a collection of nodes
+  *)
+  INodes = IInterfaceCollection<INode>;
 
   { INodeConnection }
   (*
@@ -48,13 +79,20 @@ type
     //property methods
     function GetSource: INode;
     procedure SetSource(AValue: INode);
+    function GetConnected: INodes;
 
     //properties
     property Source : INode read GetSource write SetSource;
-    //Connected : INodes (collection)
+    property Connected : INodes read GetConnected;
 
     //methods
   end;
+
+  { INodeConnections }
+  (*
+    a collection of node connections
+  *)
+  INodeConnections = IInterfaceCollection<INodeConnection>;
 
   (*
     nodes are interconnected constructs that accept
@@ -64,10 +102,32 @@ type
   INode = interface
     ['{0B7F6660-5A94-4F70-8434-E9865A2C7004}']
 
-    //Connections : INodeConnections (collection)
+    //property methods
+    function GetConnections: INodeConnections;
+    function GetID: IIdentifiable;
+    function GetRawValue: TSignalRange;
+    function GetValue: TSignal;
+    procedure SetRawValue(AValue: TSignalRange);
+    procedure SetValue(AValue: TSignal);
 
-    //Reset()
-    //Value() : TSignal
+    //properties
+    property Connections : INodeConnections read GetConnections;
+    property Value : TSignal read GetValue write SetValue;
+    property RawValue : TSignalRange read GetRawValue write SetRawValue;
+    property ID : IIdentifiable read GetID;
+
+    //methods
+
+    (*
+      resets the node's value to the default resting state
+    *)
+    procedure Reset();
+
+    (*
+      passes a signal value to this node which may or may not
+      affect this node's value, and connected downstream nodes
+    *)
+    procedure Signal(constref AValue : TSignalRange);
   end;
 
   (*
@@ -75,10 +135,26 @@ type
     roles of taking the signal measurement of all nodes, as well as
     distributing incoming external signal information
   *)
+
+  { INodeCluster }
+
   INodeCluster = interface
     ['{53CF34C9-D26E-475A-B412-34239499824F}']
 
-    //Value() : TSignal
+    //property methods
+    function GetID: IIdentifiable;
+    function GetNodes: INodes;
+
+    //properties
+    property Nodes : INodes read GetNodes;
+    property ID : IIdentifiable read GetID;
+
+    //methods
+
+    (*
+      calculates the signal value of all contained nodes
+    *)
+    property Value() : TSignal;
   end;
 
   (*
@@ -91,8 +167,25 @@ type
   INodeNetwork = interface
     ['{821D75CF-455A-434B-9406-29B3CA0CA224}']
 
-    //Pulse()
+    //properties
+    property ID : IIdentifiable read GetID;
+
+    //methods
+
+    (*
+      stores current signals to the "working" pulse tree for all clusters
+    *)
+    procedure Pulse();
+
+    (*
+      stores entire tree to "memory" with an optional session identifier
+    *)
     //Commit()
+
+    (*
+      clears the "working tree" and resets all nodes inside of all
+      clusters to their default state
+    *)
     //Clear()
   end;
 
