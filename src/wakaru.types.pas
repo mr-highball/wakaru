@@ -44,7 +44,7 @@ type
     //property methods
     function GetID: String;
     function GetTag: String;
-    procedure SetTag(AValue: String);
+    procedure SetTag(const AValue: String);
 
     //properties
 
@@ -76,16 +76,22 @@ type
   INodeConnection = interface
     ['{1187154A-EF72-4BF5-A975-D28FA418726D}']
 
+    //--------------------------------------------------------------------------
     //property methods
+    //--------------------------------------------------------------------------
     function GetSource: INode;
     procedure SetSource(AValue: INode);
     function GetConnected: INodes;
 
+    //--------------------------------------------------------------------------
     //properties
+    //--------------------------------------------------------------------------
     property Source : INode read GetSource write SetSource;
     property Connected : INodes read GetConnected;
 
+    //--------------------------------------------------------------------------
     //methods
+    //--------------------------------------------------------------------------
   end;
 
   { INodeConnections }
@@ -102,7 +108,9 @@ type
   INode = interface
     ['{0B7F6660-5A94-4F70-8434-E9865A2C7004}']
 
+    //--------------------------------------------------------------------------
     //property methods
+    //--------------------------------------------------------------------------
     function GetConnections: INodeConnections;
     function GetID: IIdentifiable;
     function GetRawValue: TSignalRange;
@@ -110,14 +118,32 @@ type
     procedure SetRawValue(AValue: TSignalRange);
     procedure SetValue(AValue: TSignal);
 
+    //--------------------------------------------------------------------------
     //properties
+    //--------------------------------------------------------------------------
+    (*
+      collection of outgoing connections
+    *)
     property Connections : INodeConnections read GetConnections;
+
+    (*
+      signal representation of the "RawValue"
+    *)
     property Value : TSignal read GetValue write SetValue;
+
+    (*
+      the current value this node is at
+    *)
     property RawValue : TSignalRange read GetRawValue write SetRawValue;
+
+    (*
+      unique identifier for this node
+    *)
     property ID : IIdentifiable read GetID;
 
+    //--------------------------------------------------------------------------
     //methods
-
+    //--------------------------------------------------------------------------
     (*
       resets the node's value to the default resting state
     *)
@@ -127,36 +153,63 @@ type
       passes a signal value to this node which may or may not
       affect this node's value, and connected downstream nodes
     *)
-    procedure Signal(constref AValue : TSignalRange);
+    procedure Signal(const AValue : TSignalRange);
   end;
 
+
+
+  { INodeCluster }
   (*
     a node cluster is a collection of connected nodes and has the
     roles of taking the signal measurement of all nodes, as well as
     distributing incoming external signal information
   *)
-
-  { INodeCluster }
-
   INodeCluster = interface
     ['{53CF34C9-D26E-475A-B412-34239499824F}']
 
+    //--------------------------------------------------------------------------
     //property methods
+    //--------------------------------------------------------------------------
     function GetID: IIdentifiable;
     function GetNodes: INodes;
+    function GetValue: TSignal;
 
+    //--------------------------------------------------------------------------
     //properties
-    property Nodes : INodes read GetNodes;
-    property ID : IIdentifiable read GetID;
+    //--------------------------------------------------------------------------
 
-    //methods
+    (*
+      children nodes inside this cluster
+    *)
+    property Nodes : INodes read GetNodes;
+
+    (*
+      unique identifier for the cluster
+    *)
+    property ID : IIdentifiable read GetID;
 
     (*
       calculates the signal value of all contained nodes
     *)
-    property Value() : TSignal;
+    property Value : TSignal read GetValue;
+
+    //--------------------------------------------------------------------------
+    //methods
+    //--------------------------------------------------------------------------
+
+    (*
+      passes a signal down to child node(s)
+    *)
+    procedure Signal(const AValue : TSignalRange);
   end;
 
+  { IClusters }
+  (*
+    a collection of node clusters
+  *)
+  INodeClusters = IInterfaceCollection<INodeCluster>;
+
+  { INodeNetwork }
   (*
     the network is a collection of at least one node cluster. primary
     responsibilities include distributing external signals to clusters,
@@ -167,26 +220,55 @@ type
   INodeNetwork = interface
     ['{821D75CF-455A-434B-9406-29B3CA0CA224}']
 
+    //--------------------------------------------------------------------------
+    //property methods
+    //--------------------------------------------------------------------------
+    function GetClusters: INodeClusters;
+    function GetID: IIdentifiable;
+
+    //--------------------------------------------------------------------------
     //properties
+    //--------------------------------------------------------------------------
+    (*
+      unique identifier for this network
+    *)
     property ID : IIdentifiable read GetID;
 
+    (*
+      child node clusters
+    *)
+    property Clusters : INodeClusters read GetClusters;
+
+    //Committed : collection
+    //Uncommitted : collection
+
+    //--------------------------------------------------------------------------
     //methods
+    //--------------------------------------------------------------------------
 
     (*
-      stores current signals to the "working" pulse tree for all clusters
+      stores current signals to the "working" (uncommitted)
+      pulse collection for all clusters
     *)
     procedure Pulse();
 
     (*
-      stores entire tree to "memory" with an optional session identifier
+      stores entire tree to "memory" (committed) with an
+      optional session identifier
     *)
-    //Commit()
+    procedure Commit(); overload;
+    procedure Commit(const AIdentifier : String); overload;
 
     (*
-      clears the "working tree" and resets all nodes inside of all
+      clears the "working" collection  and resets all nodes inside of all
       clusters to their default state
     *)
-    //Clear()
+    procedure Clear();
+
+    (*
+      passes a signal down to child cluster(s)
+    *)
+    procedure Signal(const AValue : TSignalRange);
   end;
 
 implementation

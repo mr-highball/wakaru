@@ -23,6 +23,7 @@
 unit wakaru.collection;
 
 {$mode delphi}
+{$ModeSwitch nestedprocvars}
 
 interface
 
@@ -31,6 +32,9 @@ uses
   SysUtils;
 
 type
+  TCallbackForEachItem<T> = procedure(const AItem : T; const AIndex : Cardinal; const AData : Pointer);
+  TNestedForEachItem<T> = procedure(const AItem : T; const AIndex : Cardinal; const AData : Pointer) is nested;
+  TObjectForEachItem<T> = procedure(const AItem : T; const AIndex : Cardinal) of object;
 
   { IInterfaceCollection }
   (*
@@ -42,17 +46,29 @@ type
 
     //property methods
     function GetCount: Cardinal;
-    function GetItem(constref AIndex : Cardinal): T;
+    function GetItem(const AIndex : Cardinal): T;
 
     //properties
     property Count : Cardinal read GetCount;
-    property Items[constref AIndex : Cardinal] : T read GetItem;
+    property Items[const AIndex : Cardinal] : T read GetItem; default;
 
     //methods
     procedure Clear();
-    procedure Delete(constref AIndex : Cardinal);
-    function Add(constref AItem : T) : Cardinal;
-    function Range(constref AStartIndex, AEndIndex : Cardinal) : IInterfaceCollection<T>;
+    procedure Delete(const AIndex : Cardinal);
+    function Add(const AItem : T) : Cardinal;
+    function Range(const AStartIndex, AEndIndex : Cardinal) : IInterfaceCollection<T>;
+
+    (*
+      allows caller to provide a custom function that acts on each item
+      of the collection then returns "this" collection after finishing
+
+      note:
+        the object method ForEach is named differently due to the compiler
+        being "unsure" of which overload to call
+    *)
+    function ForEach(const AMethod : TCallbackForEachItem<T>; const AData : Pointer = nil) : IInterfaceCollection<T>; overload;
+    function ForEach(const AMethod : TNestedForEachItem<T>; const AData : Pointer = nil) : IInterfaceCollection<T>; overload;
+    function ForEachObj(const AMethod : TObjectForEachItem<T>) : IInterfaceCollection<T>;
   end;
 
   (*

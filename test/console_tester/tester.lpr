@@ -22,12 +22,32 @@
 }
 program tester;
 
+{$Mode delphi}
+{$ModeSwitch nestedprocvars}
+
 uses
   wakaru.consts,
   wakaru.types,
   wakaru.utils,
-  wakaru.collection;
+  wakaru.collection,
+  wakaru.identifiable;
+
+procedure TestRemoveMe;
+var
+  LNetwork : INodeNetwork;
+  LNode : INode;
+
+  procedure Handler(const AItem : INodeCluster;
+    const AIndex : Cardinal; const AData : Pointer);
+  begin
+    //testing
+  end;
 
 begin
+  LNode := LNetwork.Clusters.Range(1, 10).ForEach(Handler)[0].Nodes[0];
+end;
+
+begin
+  TestRemoveMe; //remove later when stuff is implemented
 end.
 

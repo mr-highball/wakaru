@@ -41,20 +41,23 @@ type
   TInterfaceCollectionImpl<T> = class(TInterfacedObject, IInterfaceCollection<T>)
   strict protected
     type
-      TInternalList = TFPGInterfacedObjectList<T>;
+    TInternalList = TFPGInterfacedObjectList<T>;
   private
-    FList : TInternalList;
+    FList: TInternalList;
   protected
-    function GetCount: Cardinal;
-    function GetItem(constref AIndex : Cardinal): T;
+    function GetCount: cardinal;
+    function GetItem(const AIndex: cardinal): T;
   public
-    property Count : Cardinal read GetCount;
-    property Items[constref AIndex : Cardinal] : T read GetItem;
+    property Count: cardinal read GetCount;
+    property Items[const AIndex: cardinal]: T read GetItem;
 
     procedure Clear();
-    procedure Delete(constref AIndex : Cardinal);
-    function Add(constref AItem : T) : Cardinal;
-    function Range(constref AStartIndex, AEndIndex : Cardinal) : IInterfaceCollection<T>;
+    procedure Delete(const AIndex: cardinal);
+    function Add(const AItem: T): cardinal;
+    function Range(const AStartIndex, AEndIndex: cardinal): IInterfaceCollection<T>;
+    function ForEach(const AMethod: TCallbackForEachItem<T>; const AData : Pointer): IInterfaceCollection<T>; overload;
+    function ForEach(const AMethod : TNestedForEachItem<T>; const AData : Pointer) : IInterfaceCollection<T>; overload;
+    function ForEachObj(const AMethod : TObjectForEachItem<T>) : IInterfaceCollection<T>;
 
     constructor Create; virtual;
     destructor Destroy; override;
@@ -64,12 +67,12 @@ implementation
 
 { TInterfaceCollectionImpl }
 
-function TInterfaceCollectionImpl<T>.GetCount: Cardinal;
+function TInterfaceCollectionImpl<T>.GetCount: cardinal;
 begin
-  Result := FList.Count
+  Result := FList.Count;
 end;
 
-function TInterfaceCollectionImpl<T>.GetItem(constref AIndex: Cardinal): T;
+function TInterfaceCollectionImpl<T>.GetItem(const AIndex: cardinal): T;
 begin
   Result := FList[AIndex];
 end;
@@ -79,25 +82,72 @@ begin
   FList.Clear;
 end;
 
-procedure TInterfaceCollectionImpl<T>.Delete(constref AIndex: Cardinal);
+procedure TInterfaceCollectionImpl<T>.Delete(const AIndex: cardinal);
 begin
   FList.Delete(AIndex);
 end;
 
-function TInterfaceCollectionImpl<T>.Add(constref AItem: T): Cardinal;
+function TInterfaceCollectionImpl<T>.Add(const AItem: T): cardinal;
 begin
-  FList.Add(AItem)
+  FList.Add(AItem);
 end;
 
-function TInterfaceCollectionImpl<T>.Range(constref AStartIndex,
-  AEndIndex: Cardinal): IInterfaceCollection<T>;
+function TInterfaceCollectionImpl<T>.Range(const AStartIndex, AEndIndex: cardinal):IInterfaceCollection<T>;
 var
-  I : Integer;
+  I: integer;
 begin
   Result := TInterfaceCollectionImpl<T>.Create;
 
   for I := AStartIndex to AEndIndex do
-    Result.Add(FList[I]);
+    if I > FList.Count then
+      Break
+    else
+      Result.Add(FList[I]);
+end;
+
+function TInterfaceCollectionImpl<T>.ForEach(const AMethod: TCallbackForEachItem<T>;
+  const AData : Pointer):IInterfaceCollection<T>;
+var
+  I: Integer;
+begin
+  Result := Self;
+
+  if not Assigned(AMethod) then
+    Exit;
+
+  //iterate list and pass item to method
+  for I := 0 to Pred(FList.Count) do
+    AMethod(FList[I], I, AData);
+end;
+
+function TInterfaceCollectionImpl<T>.ForEach(const
+  AMethod: TNestedForEachItem<T>; const AData : Pointer): IInterfaceCollection<T>;
+var
+  I: Integer;
+begin
+  Result := Self;
+
+  if not Assigned(AMethod) then
+    Exit;
+
+  //iterate list and pass item to method
+  for I := 0 to Pred(FList.Count) do
+    AMethod(FList[I], I, AData);
+end;
+
+function TInterfaceCollectionImpl<T>.ForEachObj(const
+  AMethod: TObjectForEachItem<T>): IInterfaceCollection<T>;
+var
+  I: Integer;
+begin
+  Result := Self;
+
+  if not Assigned(AMethod) then
+    Exit;
+
+  //iterate list and pass item to method
+  for I := 0 to Pred(FList.Count) do
+    AMethod(FList[I], I);
 end;
 
 constructor TInterfaceCollectionImpl<T>.Create;
@@ -112,4 +162,3 @@ begin
 end;
 
 end.
-
